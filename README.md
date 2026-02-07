@@ -35,9 +35,9 @@ graph TD
         HW1[MAX9814 Analogue Mic] --> HW2[WAV Capture ADC]
         HW3[Buttons GPIO 12/13] --> HW2
         HW2 --> HW4[WiFi Client]
-        HW5[MAX98357A I2S DAC] <-- HW6[WAV Playback]
-        HW6 <-- HW4
-        HW7[ILI9341 TFT SPI] <-- HW4
+        HW4 --> HW6[WAV Playback]
+        HW6 --> HW5[MAX98357A I2S DAC]
+        HW4 --> HW7[ILI9341 TFT SPI]
     end
 
     subgraph Backend ["FastAPI Backend"]
