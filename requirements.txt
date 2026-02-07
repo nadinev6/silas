@@ -13,3 +13,4 @@ aiosqlite==0.20.0         # Async driver for the local SQLite DB
 # --- Utilities ---
 python-dotenv==1.0.1      # Securely manage your GEMINI_API_KEY
 pydantic==2.9.0           # Data validation for incoming ESP32 audio states
+google-cloud-texttospeech # Premium Studio-grade voice synthesis

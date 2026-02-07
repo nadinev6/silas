@@ -1,4 +1,4 @@
-# 🗜️ Project Silas: The World's First Thinking Hardware Agent
+# 🗜️ Project Silas: Ghost in the Machine
 
 > **"Fix your wiring before you talk to me."** — Silas
 
@@ -45,10 +45,10 @@ graph TD
         B1 --> B2[Logic Router]
         B2 -- "Determine Level" --> B3[Gemini 3 Manager]
         B3 -- "Persistence" --> B4[(SQLite DB)]
-        B3 --> B5["Edge-TTS (UK Ryan)"]
-        B5 -- "Audio Stream" --> B1
+        B3 --> B5["Google Cloud TTS (Studio-B)"]
+        B5 -- "Audio Response" --> B1
         
-        B1 -- "Socket.IO" --> B6[Glass Box Dashboard]
+        B1 -- "Socket.IO" --> B6[Spectral Core HUD]
     end
 
     subgraph AI ["Google Gemini 3"]
@@ -56,9 +56,9 @@ graph TD
         AI1 -- "Reasoning + JSON" --> B3
     end
 
-    subgraph Dashboard ["Web Dashboard - CRT"]
+    subgraph Dashboard ["Full-Page Spectral HUD"]
         B6 -- "new_thought" --> D1[Internal Monologue]
-        B6 -- "thoughts" --> D2[Hardware State Viz]
+        B6 -- "thoughts" --> D2[Memory Log]
     end
 ```
 
@@ -71,9 +71,11 @@ graph TD
    ```bash
    pip install -r requirements.txt
    ```
-2. Set your Gemini API Key in `.env.local`:
+2. Set your credentials in `.env.local`:
    ```bash
    GEMINI_API_KEY="your_api_key_here"
+   GOOGLE_APPLICATION_CREDENTIALS="/path/to/project-silas-key.json"
+   SILAS_VOICE="en-GB-Studio-B"
    ```
 3. Run the server (from root):
    ```bash
@@ -104,7 +106,7 @@ graph TD
 * **Lead Developer**: Nadine van der Haar
 * **Core Intelligence**: Powered by **Google Gemini 3 Flash**
 * **Code Orchestration**: Developed with **Antigravity**
-* **Voice Synthesis**: **Edge-TTS** (Microsoft Neural)
+* **Voice Synthesis**: **Google Cloud Text-to-Speech** (Studio-grade)
 
 ---
 *Built for the 2026 Gemini 3 Hackathon*

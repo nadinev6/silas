@@ -1,116 +1,363 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-    <title>SILAS | Internal Monologue</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SILAS | Spectral Reasoning Core</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="https://unpkg.com/@mux/mux-player"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;800&family=Inter:wght@300;400;800&family=JetBrains+Mono:wght@300;500&display=swap"
+        rel="stylesheet">
     <style>
-        body {
-            background: #0a0a0a;
-            color: #4af626;
-            font-family: 'Courier New', Courier, monospace;
-            overflow: hidden;
+        :root {
+            --bg: #030305;
+            --glass: rgba(255, 255, 255, 0.015);
+            --border: rgba(255, 255, 255, 0.08);
+            --spectral-1: #ff00c1;
+            --spectral-2: #00fff0;
+            --spectral-3: #7000ff;
+            --mono: 'JetBrains Mono', monospace;
+            --sans: 'Inter', sans-serif;
+            --primary: var(--spectral-2);
         }
 
-        /* CRT Scanline Effect */
-        .crt::before {
-            content: " ";
-            display: block;
+        body {
+            background-color: var(--bg);
+            background-image: radial-gradient(circle at 2px 2px, rgba(255, 255, 255, 0.05) 1px, transparent 0);
+            background-size: 40px 40px;
+            margin: 0;
+            min-height: 100vh;
+            overflow: hidden;
+            font-family: var(--sans);
+            color: white;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .noise-filter {
             position: absolute;
+            width: 0;
+            height: 0;
+        }
+
+        /* The Grainy Silica Texture - Applied to Full Body */
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            opacity: 0.12;
+            filter: url(#grainy);
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        .prism-line {
+            position: fixed;
             top: 0;
             left: 0;
-            bottom: 0;
-            right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
-                linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 255, 0, 0.06));
-            z-index: 2;
-            background-size: 100% 2px, 3px 100%;
-            pointer-events: none;
-        }
-
-        .container {
-            display: flex;
-            height: 100vh;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-
-        .log-panel {
-            flex: 2;
-            border: 1px solid #4af626;
-            padding: 20px;
-            margin-right: 10px;
-            overflow-y: auto;
-            background: rgba(0, 20, 0, 0.2);
-        }
-
-        .status-panel {
-            flex: 1;
-            border: 1px solid #4af626;
-            padding: 20px;
-        }
-
-        h2 {
-            border-bottom: 1px solid #4af626;
-            padding-bottom: 5px;
-            text-transform: uppercase;
-        }
-
-        .thought {
-            color: #88ff88;
-            font-style: italic;
-            margin-bottom: 10px;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--spectral-1), var(--spectral-2), var(--spectral-3), transparent);
             opacity: 0.8;
+            animation: sweep 4s infinite linear;
+            z-index: 1000;
         }
 
-        .thought::before {
-            content: "> [REASONING]: ";
-        }
-
-        .blink {
-            animation: blinker 1s linear infinite;
-        }
-
-        @keyframes blinker {
-            50% {
-                opacity: 0;
+        @keyframes sweep {
+            0% {
+                transform: translateX(-100%);
             }
+
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        .view-frame {
+            padding: 4rem;
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 2rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .memory-log {
+            border-left: 1px solid var(--border);
+            padding-left: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            justify-content: center;
+        }
+
+        .log-title {
+            font-family: var(--mono);
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3em;
+            color: rgba(255, 255, 255, 0.3);
+            margin-bottom: 1rem;
+        }
+
+        .log-entry {
+            font-family: var(--mono);
+            font-size: 0.8rem;
+            line-height: 1.5;
+            color: rgba(255, 255, 255, 0.4);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            padding-bottom: 1rem;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateX(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Metallic Text Gradient */
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(3rem, 8vw, 6rem);
+            font-weight: 800;
+            line-height: 0.85;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            background: linear-gradient(to bottom, #fff 40%, rgba(255, 255, 255, 0.4));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .data-meta {
+            font-family: var(--mono);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.4em;
+            color: var(--spectral-2);
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--spectral-2);
+            box-shadow: 0 0 15px var(--spectral-2);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .description {
+            margin-top: 2rem;
+            font-weight: 300;
+            line-height: 1.6;
+            max-width: 600px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.2rem;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 4rem;
+            border-top: 1px solid var(--border);
+            padding-top: 3rem;
+            margin-top: 3rem;
+        }
+
+        .metric-item .label {
+            font-family: var(--mono);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: rgba(255, 255, 255, 0.4);
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-item .value {
+            font-family: var(--mono);
+            font-size: 1.5rem;
+            color: #fff;
+            letter-spacing: 0.1em;
+        }
+
+        .refraction-spotlight {
+            position: fixed;
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(112, 0, 255, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+            transition: transform 0.1s ease-out;
+        }
+
+        /* Video Player Frame */
+        .video-box {
+            margin-top: 3rem;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.01);
+            max-width: 800px;
+            aspect-ratio: 16/9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .video-box::before {
+            content: "[ STREAM_PIPELINE_ACTIVE ]";
+            position: absolute;
+            top: 12px;
+            left: 16px;
+            font-family: var(--mono);
+            font-size: 9px;
+            color: rgba(255, 255, 255, 0.3);
+            letter-spacing: 1px;
         }
     </style>
 </head>
 
-<body class="crt">
-    <div class="container">
-        <div class="log-panel" id="log">
-            <h2>Internal Monologue</h2>
-            <div id="thought-stream"></div>
+<body>
+    <svg class="noise-filter">
+        <filter id="grainy">
+            <feTurbulence type="fractalNoise" baseFrequency="0.6" numOctaves="3" stitchTiles="stitch" />
+            <feColorMatrix type="saturate" values="0" />
+        </filter>
+    </svg>
+
+    <div class="prism-line"></div>
+    <div class="refraction-spotlight" id="spotlight"></div>
+
+    <div class="view-frame">
+        <div class="main-content">
+            <div>
+                <div class="data-meta">
+                    <div class="status-pill">
+                        <div class="dot"></div>
+                        <span>CORE_REASONING_ENGINE_LIVE</span>
+                    </div>
+                    <span>SESSION_HASH: <span id="sig-display">0x000...FFF</span></span>
+                </div>
+
+                <h1>Project Silas</h1>
+
+                <p class="description">
+                    Ghost in the Machine.
+                </p>
+
+                <div class="video-box">
+                    <span
+                        style="font-family: var(--mono); color: rgba(255,255,255,0.2); font-size: 11px; letter-spacing: 2px;">
+                        WAITING FOR MUX_STREAM_DATA...
+                    </span>
+                </div>
+            </div>
+
+            <div class="metrics-grid">
+                <div class="metric-item">
+                    <div class="label">Thought Quantization</div>
+                    <div class="value" id="token-val">0000_TOKENS</div>
+                </div>
+                <div class="metric-item">
+                    <div class="label">Reasoning Priority</div>
+                    <div id="think-level" class="value">ADAPTIVE_FLASH</div>
+                </div>
+                <div class="metric-item">
+                    <div class="label">Link Integrity</div>
+                    <div class="value">STABLE_ESP32_S3</div>
+                </div>
+            </div>
         </div>
-        <div class="status-panel">
-            <h2>System Status</h2>
-            <p>AGENT: <span class="blink">SILAS_V3_FLASH</span></p>
-            <p>THINKING_LEVEL: <span id="t-level">IDLE</span></p>
-            <p>I2S_STATE: <span id="i2s">READY</span></p>
-            <br>
-            <div id="disappointment-meter">DISAPPOINTMENT: [####------]</div>
+
+        <div class="memory-log">
+            <div class="log-title">> PERSISTENT_MEMORY_LOG</div>
+            <div id="log-entries">
+                <!-- Log entries will appear here -->
+                <div class="log-entry" style="opacity: 0.2;">SYSLOG_INIT: Awaiting reasoning cycle...</div>
+            </div>
         </div>
     </div>
 
     <script>
         const socket = io();
-        const stream = document.getElementById('thought-stream');
+        const spotlight = document.getElementById('spotlight');
+        const tokenVal = document.getElementById('token-val');
+        const thinkLevel = document.getElementById('think-level');
+        const sigDisplay = document.getElementById('sig-display');
+        const logEntries = document.getElementById('log-entries');
+
+        function addLog(text) {
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerText = `[${new Date().toLocaleTimeString()}] ${text}`;
+            logEntries.prepend(entry);
+
+            // Keep only last 4 entries
+            if (logEntries.children.length > 4) {
+                logEntries.lastElementChild.remove();
+            }
+        }
+
+        // Mouse light refraction (no rotation)
+        document.addEventListener('mousemove', (e) => {
+            spotlight.style.transform = `translate(${e.clientX - 400}px, ${e.clientY - 400}px)`;
+        });
 
         socket.on('new_thought', (data) => {
-            document.getElementById('t-level').innerText = "HIGH_REASONING";
-            const div = document.createElement('div');
-            div.className = 'thought';
-            div.innerText = data.text;
-            stream.appendChild(div);
-            stream.scrollTop = stream.scrollHeight;
+            addLog(`REASONING: ${data.text}`);
+        });
+
+        socket.on('thoughts', (data) => {
+            tokenVal.innerText = `${data.thought_tokens.toString().padStart(4, '0')}_TOKENS`;
+            thinkLevel.innerText = `${data.level.toUpperCase()}_REASONING`;
+            sigDisplay.innerText = data.signature ? data.signature.substring(0, 12).toUpperCase() + '...' : '0x000...FFF';
+            addLog(`CYCLE_COMPLETE: Memory hash updated.`);
         });
 
         socket.on('reset', () => {
-            stream.innerHTML = "";
-            document.getElementById('t-level').innerText = "IDLE";
+            tokenVal.innerText = "0000_TOKENS";
+            thinkLevel.innerText = "ADAPTIVE_FLASH";
+            logEntries.innerHTML = '<div class="log-entry" style="opacity: 0.2;">SYSLOG_RESET: Awaiting reasoning cycle...</div>';
         });
     </script>
 </body>

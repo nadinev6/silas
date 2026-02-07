@@ -22,6 +22,10 @@ const char* deviceId = "wokwi-silas-01";
 #define TFT_CS 15
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
+// Global reasoning metrics
+int lastThoughtTokens = 0;
+String lastThinkingLevel = "LOW";
+
 // Pre-defined questions for button press demo
 const char* demoQuestions[] = {
   "Why is my I2S clock jittering?",
@@ -32,9 +36,15 @@ const char* demoQuestions[] = {
 int questionIndex = 0;
 
 String askSilas(String userText) {
+  // Visual Feedback: Accessing Signature
+  tft.setTextColor(ILI9341_WHITE);
+  tft.setTextSize(1);
+  tft.setCursor(0, 50);
+  tft.println("STATUS: ACCESSING THOUGHT SIGNATURE...");
+  
   HTTPClient http;
   http.useHTTP10(true);
-  http.setTimeout(15000);
+  http.setTimeout(45000); // 45 second timeout for Deep Reasoning
   
   String url = String(serverUrl) + "/chat";
   http.begin(url);
@@ -49,11 +59,13 @@ String askSilas(String userText) {
   
   if (httpCode > 0) {
     String payload = http.getString();
-    DynamicJsonDocument doc(4096);
+    DynamicJsonDocument doc(16384); // Increased buffer for very long reasoning sessions
     DeserializationError error = deserializeJson(doc, payload);
     
     if (!error && doc.containsKey("text")) {
       result = doc["text"].as<String>();
+      lastThoughtTokens = doc["thought_tokens"] | 0;
+      lastThinkingLevel = doc["thinking_level"].as<String>();
     }
   }
   
@@ -73,9 +85,9 @@ void showSilasResponse(String question) {
   tft.println(question);
   tft.println();
   
-  // Show thinking status
+  // Show initial thinking status
   tft.setTextColor(ILI9341_MAGENTA);
-  tft.println("SILAS IS THINKING...");
+  tft.println("SILAS IS ANALYSING...");
   
   // Get response
   String response = askSilas(question);
@@ -83,18 +95,31 @@ void showSilasResponse(String question) {
   // Clear and show response
   tft.fillScreen(ILI9341_BLACK);
   tft.setCursor(0, 0);
+  
+  // Header with Reasoning Metrics
   tft.setTextColor(ILI9341_CYAN);
   tft.setTextSize(2);
-  tft.println("SILAS:");
+  tft.print("SILAS ");
   tft.setTextSize(1);
+  tft.setTextColor(ILI9341_LIGHTGREY);
+  tft.print("[");
+  tft.print(lastThinkingLevel);
+  tft.print(" THINKING]");
+  tft.println();
+  
+  tft.setTextColor(ILI9341_WHITE);
+  tft.print("Reasoning Tokens: ");
+  tft.println(lastThoughtTokens);
+  tft.println("------------------------------------");
   tft.println();
   
   if (response.length() > 0) {
     tft.setTextColor(ILI9341_GREEN);
     tft.setTextWrap(true);
-    // Print character by character to ensure it displays
-    for (int i = 0; i < response.length() && i < 400; i++) {
-      tft.print(response[i]);
+    // Increased character limit and better wrapping
+    // 320px width gives ~53 chars per line at text size 1
+    for (int i = 0; i < response.length() && i < 800; i++) {
+        tft.print(response[i]);
     }
   } else {
     tft.setTextColor(ILI9341_RED);
@@ -102,6 +127,7 @@ void showSilasResponse(String question) {
   }
   
   Serial.println("<< Silas: " + response);
+  Serial.printf("[Reasoning] Tokens: %d, Level: %s\n", lastThoughtTokens, lastThinkingLevel.c_str());
 }
 
 void setup() {
@@ -111,13 +137,14 @@ void setup() {
   WiFi.begin(ssid, password, 6);
 
   tft.begin();
-  tft.setRotation(1);
+  tft.setRotation(1); // Landscape
   tft.fillScreen(ILI9341_BLACK);
 
   tft.setTextColor(ILI9341_WHITE);
   tft.setTextSize(2);
-  tft.println("SILAS v1.2");
+  tft.println("SILAS v1.6");
   tft.setTextSize(1);
+  tft.print("\nReasoning Mode Enabled");
   tft.print("\nConnecting to WiFi");
 
   while (WiFi.status() != WL_CONNECTED) {
@@ -130,24 +157,20 @@ void setup() {
   tft.println(WiFi.localIP());
   
   tft.setTextColor(ILI9341_YELLOW);
-  tft.println("\n\nPress BUTTON or type in");
-  tft.println("Serial Monitor to talk.");
+  tft.println("\n\nReady for Hardware Debug.");
   
-  Serial.println("=== SILAS Ready ===");
-  Serial.println("Type a question and press Enter.");
+  Serial.println("=== SILAS Reasoning Enabled ===");
 }
 
 void loop() {
-  // Button press - cycle through demo questions
   if (digitalRead(BTN_PIN) == LOW) {
     String question = demoQuestions[questionIndex];
     questionIndex = (questionIndex + 1) % 4;
     Serial.println(">> You (button): " + question);
     showSilasResponse(question);
-    delay(500);
+    delay(1000); 
   }
   
-  // Serial input - custom questions
   if (Serial.available() > 0) {
     String userInput = Serial.readStringUntil('\n');
     userInput.trim();
