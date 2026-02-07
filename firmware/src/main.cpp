@@ -137,6 +137,29 @@ void setup() {
     updateDisplay("READY", ILI9341_CYAN, "Hold GPIO 12 to interact.");
 }
 
+void sendChatRequest(String text) {
+    if (WiFi.status() == WL_CONNECTED) {
+        updateDisplay("THINKING", ILI9341_MAGENTA, "Analysing logic...");
+        HTTPClient http;
+        http.begin(String(serverUrl) + "/chat");
+        http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+        
+        String postData = "device_id=" + String(deviceId) + "&user_text=" + text;
+        
+        int httpResponseCode = http.POST(postData);
+
+        if (httpResponseCode > 0) {
+            String response = http.getString();
+            JsonDocument doc;
+            deserializeJson(doc, response);
+            if (doc.containsKey("audio_url")) {
+                playResponse(doc["audio_url"].as<String>());
+            }
+        }
+        http.end();
+    }
+}
+
 void loop() {
     // Check Manual Reset
     if (digitalRead(BUTTON_RESET) == LOW) {
@@ -144,7 +167,17 @@ void loop() {
         delay(500);
     }
 
-    // Handle Interaction
+    // Handle Serial Input (Wokwi Simulation Fallback)
+    if (Serial.available() > 0) {
+        String input = Serial.readStringUntil('\n');
+        input.trim();
+        if (input.length() > 0) {
+            Serial.println("Simulating Voice Input: " + input);
+            sendChatRequest(input);
+        }
+    }
+
+    // Handle Interaction (Hardware Mic)
     if (digitalRead(BUTTON_TRIGGER) == LOW && !isRecording) {
         isRecording = true;
         updateDisplay("LISTENING", ILI9341_RED);

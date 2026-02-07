@@ -15,8 +15,11 @@ from sqlalchemy.orm import Session
 from dotenv import load_dotenv
 
 # Local Project Imports
-import database
-from backend import logic
+from . import database
+from . import logic
+import tempfile
+import subprocess
+import threading
 
 # Load Environment Variables
 load_dotenv(".env.local")
@@ -29,7 +32,9 @@ SILAS_VOICE = "en-GB-RyanNeural"
 client = genai.Client(api_key=GEMINI_API_KEY)
 
 # Load Silas System Prompt
-with open("system_prompt.md", "r") as f:
+# Path updated to look in prompts/ directory
+PROMPT_PATH = os.path.join(os.path.dirname(__file__), "..", "prompts", "system_prompt.md")
+with open(PROMPT_PATH, "r") as f:
     SILAS_PROMPT = f.read()
 
 app = FastAPI(title="Project Silas: Thinking Hardware Agent")
@@ -39,7 +44,9 @@ sio = socketio.AsyncServer(async_mode='asgi', cors_allowed_origins="*")
 socket_app = socketio.ASGIApp(sio, app)
 
 # Mount Dashboard
-app.mount("/dashboard", StaticFiles(directory="dashboard"), name="dashboard")
+# Path updated to point to dashboard/ at the root
+DASHBOARD_PATH = os.path.join(os.path.dirname(__file__), "..", "dashboard")
+app.mount("/dashboard", StaticFiles(directory=DASHBOARD_PATH), name="dashboard")
 
 # Database Dependency
 def get_db():
@@ -51,7 +58,8 @@ def get_db():
 
 @app.get("/")
 def read_root():
-    return FileResponse("dashboard/index.html")
+    INDEX_PATH = os.path.join(os.path.dirname(__file__), "..", "dashboard", "index.html")
+    return FileResponse(INDEX_PATH)
 
 @app.get("/tts")
 async def tts_stream(text: str):
@@ -161,6 +169,51 @@ async def handle_voice(
     print(f"[{device_id}] Silas: {ai_text}")
 
     # Step 3: Return JSON with the TTS URL for ESP32
+    return {
+        "text": ai_text,
+        "audio_url": f"{BASE_URL}/tts?text={ai_text.replace(' ', '%20')}" 
+    }
+
+@app.post("/chat")
+async def handle_chat(
+    device_id: str = Form(...),
+    user_text: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    """Handles direct text input for Wokwi simulation."""
+    print(f"[{device_id}] Received text (Simulation): {user_text}")
+    
+    # Reset dashboard UI
+    await sio.emit('reset', {})
+    
+    # Get Silas Reasoning & Response
+    ai_text = await get_gemini_3_response(user_text, device_id, db)
+    print(f"[{device_id}] Silas: {ai_text}")
+    
+    # Play TTS through local speakers
+    try:
+        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp3")
+        temp_path = temp_file.name
+        temp_file.close()
+        
+        communicate = edge_tts.Communicate(ai_text, SILAS_VOICE)
+        await communicate.save(temp_path)
+        
+        # Play audio in background using Windows media player
+        def play_audio():
+            subprocess.run(["powershell", "-c", f"(New-Object Media.SoundPlayer '{temp_path}').PlaySync()"], 
+                          capture_output=True, shell=True)
+        
+        # Use threading to not block the response
+        threading.Thread(target=lambda: subprocess.Popen(
+            ["powershell", "-c", f"Add-Type -AssemblyName presentationCore; $player = New-Object system.windows.media.mediaplayer; $player.Open('{temp_path}'); $player.Play(); Start-Sleep -Seconds 120"],
+            creationflags=subprocess.CREATE_NO_WINDOW
+        )).start()
+        
+        print(f"[TTS] Playing audio through speakers...")
+    except Exception as e:
+        print(f"[TTS] Playback error: {e}")
+
     return {
         "text": ai_text,
         "audio_url": f"{BASE_URL}/tts?text={ai_text.replace(' ', '%20')}" 
