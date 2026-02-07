@@ -1,0 +1,15 @@
+# --- Core Intelligence (Gemini 3) ---
+google-genai==1.62.0      # Official 2026 SDK for Thinking Levels & Thought Signatures
+
+# --- Backend Architecture ---
+fastapi[standard]==0.115.0 # High-performance API with built-in Uvicorn
+python-socketio==5.11.0    # Real-time streaming for the Internal Monologue
+aiohttp==3.10.0           # Async requests for the ESP32 webhook
+
+# --- Database & Persistence ---
+sqlalchemy==2.0.30        # For storing Thought Signatures and Hardware Logs
+aiosqlite==0.20.0         # Async driver for the local SQLite DB
+
+# --- Utilities ---
+python-dotenv==1.0.1      # Securely manage your GEMINI_API_KEY
+pydantic==2.9.0           # Data validation for incoming ESP32 audio states

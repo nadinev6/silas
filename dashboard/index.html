@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>SILAS | Internal Monologue</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <style>
+        body {
+            background: #0a0a0a;
+            color: #4af626;
+            font-family: 'Courier New', Courier, monospace;
+            overflow: hidden;
+        }
+
+        /* CRT Scanline Effect */
+        .crt::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+                linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 255, 0, 0.06));
+            z-index: 2;
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .log-panel {
+            flex: 2;
+            border: 1px solid #4af626;
+            padding: 20px;
+            margin-right: 10px;
+            overflow-y: auto;
+            background: rgba(0, 20, 0, 0.2);
+        }
+
+        .status-panel {
+            flex: 1;
+            border: 1px solid #4af626;
+            padding: 20px;
+        }
+
+        h2 {
+            border-bottom: 1px solid #4af626;
+            padding-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .thought {
+            color: #88ff88;
+            font-style: italic;
+            margin-bottom: 10px;
+            opacity: 0.8;
+        }
+
+        .thought::before {
+            content: "> [REASONING]: ";
+        }
+
+        .blink {
+            animation: blinker 1s linear infinite;
+        }
+
+        @keyframes blinker {
+            50% {
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body class="crt">
+    <div class="container">
+        <div class="log-panel" id="log">
+            <h2>Internal Monologue</h2>
+            <div id="thought-stream"></div>
+        </div>
+        <div class="status-panel">
+            <h2>System Status</h2>
+            <p>AGENT: <span class="blink">SILAS_V3_FLASH</span></p>
+            <p>THINKING_LEVEL: <span id="t-level">IDLE</span></p>
+            <p>I2S_STATE: <span id="i2s">READY</span></p>
+            <br>
+            <div id="disappointment-meter">DISAPPOINTMENT: [####------]</div>
+        </div>
+    </div>
+
+    <script>
+        const socket = io();
+        const stream = document.getElementById('thought-stream');
+
+        socket.on('new_thought', (data) => {
+            document.getElementById('t-level').innerText = "HIGH_REASONING";
+            const div = document.createElement('div');
+            div.className = 'thought';
+            div.innerText = data.text;
+            stream.appendChild(div);
+            stream.scrollTop = stream.scrollHeight;
+        });
+
+        socket.on('reset', () => {
+            stream.innerHTML = "";
+            document.getElementById('t-level').innerText = "IDLE";
+        });
+    </script>
+</body>
+
+</html>
