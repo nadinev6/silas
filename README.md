@@ -1,4 +1,4 @@
-# 🗜️ Project Silas: Ghost in the Machine
+# 🗜️ Project Silas: The Silicon Savant
 
 > **"Fix your wiring before you talk to me."** — Silas
 
@@ -31,34 +31,41 @@ ESP32-Gemini3-Agent/
 
 ```mermaid
 graph TD
+    %% Define Styles
+    classDef hardware fill:#0a1a1a,stroke:#00f2ff,stroke-width:2px,color:#fff;
+    classDef backend fill:#111,stroke:#555,stroke-width:1px,color:#ccc;
+    classDef ai fill:#1a0a1a,stroke:#ff00ff,stroke-width:2px,color:#fff;
+    classDef database fill:#222,stroke:#aaa,stroke-width:1px,stroke-dasharray: 5 5;
+    classDef dashboard fill:#000,stroke:#00f2ff,stroke-width:1px,color:#00f2ff;
+
     subgraph ESP32 ["Physical Device - ESP32"]
-        HW1[MAX9814 Analogue Mic] --> HW2[WAV Capture ADC]
-        HW3[Buttons GPIO 12/13] --> HW2
-        HW2 --> HW4[WiFi Client]
-        HW4 --> HW6[WAV Playback]
-        HW6 --> HW5[MAX98357A I2S DAC]
-        HW4 --> HW7[ILI9341 TFT SPI]
+        HW1[MAX9814 Analogue Mic]:::hardware --> HW2[WAV Capture ADC]:::hardware
+        HW3[Buttons GPIO 12/13]:::hardware --> HW2
+        HW2 --> HW4[WiFi Client]:::hardware
+        HW4 --> HW6[WAV Playback]:::hardware
+        HW6 --> HW5[MAX98357A I2S DAC]:::hardware
+        HW4 --> HW7[ILI9341 TFT SPI]:::hardware
     end
 
     subgraph Backend ["FastAPI Backend"]
-        HW4 -- "/voice POST" --> B1[Audio Handler]
-        B1 --> B2[Logic Router]
-        B2 -- "Determine Level" --> B3[Gemini 3 Manager]
-        B3 -- "Persistence" --> B4[(SQLite DB)]
-        B3 --> B5["Google Cloud TTS (Studio-B)"]
+        HW4 -- "/voice POST" --> B1[Audio Handler]:::backend
+        B1 --> B2[Logic Router]:::backend
+        B2 -- "Determine Level" --> B3[Gemini 3 Manager]:::backend
+        B3 -- "Persistence" --> B4[(SQLite DB)]:::database
+        B3 --> B5["Google Cloud TTS (Studio-B)"]:::backend
         B5 -- "Audio Response" --> B1
         
-        B1 -- "Socket.IO" --> B6[Spectral Core HUD]
+        B1 -- "Socket.IO" --> B6[Spectral Core HUD]:::backend
     end
 
     subgraph AI ["Google Gemini 3"]
-        B3 -- "Prompt + Signature" --> AI1[Flash Preview]
+        B3 -- "Prompt + Signature" --> AI1[Flash Preview]:::ai
         AI1 -- "Reasoning + JSON" --> B3
     end
 
     subgraph Dashboard ["Full-Page Spectral HUD"]
-        B6 -- "new_thought" --> D1[Internal Monologue]
-        B6 -- "thoughts" --> D2[Memory Log]
+        B6 -- "new_thought" --> D1[Internal Monologue]:::dashboard
+        B6 -- "thoughts" --> D2[Memory Log]:::dashboard
     end
 ```
 
@@ -77,6 +84,8 @@ graph TD
    GOOGLE_APPLICATION_CREDENTIALS="/path/to/project-silas-key.json"
    SILAS_VOICE="en-GB-Studio-B"
    ```
+   # Note: Ensure the JSON key file is in the root directory and excluded via .gitignore.
+   
 3. Run the server (from root):
    ```bash
    python -m backend.server

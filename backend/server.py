@@ -95,7 +95,7 @@ async def tts_stream(text: str):
     )
     
     return Response(content=response.audio_content, media_type="audio/mpeg")
- Miranda
+
 async def get_gemini_3_response(user_input: str, device_id: str, db: Session):
     # Retrieve session for thought signature persistence
     session_record = db.query(database.Session).filter(database.Session.device_id == device_id).first()
@@ -127,27 +127,39 @@ async def get_gemini_3_response(user_input: str, device_id: str, db: Session):
     # --- Processing & Cleaning ---
     full_response_text = getattr(response, 'text', "") or ""
     
-    # Safely get signature from the model's parts
+    # Extract Thought Signature & Internal Monologue from response parts
     new_signature = None
+    internal_thought = None
     try:
         if response.candidates and response.candidates[0].content.parts:
-            for part in reversed(response.candidates[0].content.parts):
-                # Using getattr is safer than hasattr for SDK objects
+            for part in response.candidates[0].content.parts:
+                # 1. Check for Thought Signature (for multi-turn state)
                 sig = getattr(part, 'thought_signature', None)
                 if sig:
                     new_signature = sig
-                    break
+                
+                # 2. Check for Internal Monologue (Actual thinking text)
+                # Some SDK versions use 'thought' attribute, others might put it in text with thought=True
+                is_thought = getattr(part, 'thought', False)
+                if is_thought:
+                    internal_thought = getattr(part, 'text', None)
     except Exception as e:
-        print(f"Signature Extraction Warning: {e}")
+        print(f"Part Extraction Warning: {e}")
     
-    thought_summary = getattr(response, 'thought_summary', "Analysing circuit...") or "Analysing circuit..."
+    # Fallback for dashboard display
+    thought_summary = internal_thought or getattr(response, 'thought_summary', "Analysing circuit...") or "Analysing circuit..."
     
     # Extract Thought Tokens for the hackathon "compute proof"
     usage = getattr(response, 'usage_metadata', None)
     thought_tokens = 0
     if usage:
         # Check for various possible attribute names in different SDK versions
-        thought_tokens = getattr(usage, 'thought_token_count', 0) or getattr(usage, 'thought_tokens', 0)
+        thought_tokens = (
+            getattr(usage, 'thought_tokens_count', 0) or 
+            getattr(usage, 'thoughts_token_count', 0) or
+            getattr(usage, 'thought_token_count', 0) or
+            getattr(usage, 'thought_tokens', 0)
+        )
     
     # Extract Hardware State JSON block from text
     hardware_state = {"status": "idle"}
