@@ -10,9 +10,13 @@ A physical AI agent powered by **Gemini 3 Flash**, designed to bridge the gap be
 ---
 
 <p align="center">
-  <a href="https://player.mux.com/7TjOUyG3ZJH01pnBBjeioq2EOoC01O01x3tlG75yb5LqoY">
-    <img src="docs/images/Video.png" width="100%" alt="Watch Project Silas Demo">
-  </a>
+  <kbd>
+    <a href="https://player.mux.com/7TjOUyG3ZJH01pnBBjeioq2EOoC01O01x3tlG75yb5LqoY">
+      <img src="https://image.mux.com/7TjOUyG3ZJH01pnBBjeioq2EOoC01O01x3tlG75yb5LqoY/thumbnail.png?width=1200&time=2" 
+           alt="Watch Project Silas Demo" 
+           width="100%">
+    </a>
+  </kbd>
 </p>
 
 ## 🎙️ The Persona: Silas
@@ -106,7 +110,11 @@ graph TD
    npx localtunnel --port 8000 --subdomain silas-agent-v1
    ```
 
-   ![Software Configuration Guide](docs/images/Config.jpg)
+<p align="center">
+  <kbd>
+    <img src="docs/images/Config.jpg" alt="Software Configuration Guide" width="100%">
+  </kbd>
+</p>
  
 ### Firmware (C++)
 1. Open the **`firmware/`** folder in **PlatformIO**.
