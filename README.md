@@ -11,7 +11,7 @@ A physical AI agent powered by **Gemini 3 Flash**, designed to bridge the gap be
 
 <p align="center">
   <a href="https://player.mux.com/7TjOUyG3ZJH01pnBBjeioq2EOoC01O01x3tlG75yb5LqoY">
-    <img src="video.png" width="100%" alt="Watch Project Silas Demo">
+    <img src="docs/images/Video.png" width="100%" alt="Watch Project Silas Demo">
   </a>
 </p>
 
