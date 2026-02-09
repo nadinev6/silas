@@ -85,6 +85,55 @@ graph TD
 
 ---
 
+## 🧠 The Thought Signature Engine
+
+Continuity across hardware reboots and session timeouts is maintained.
+
+
+- **Stateful SQLite Backend:** Caches the `last_thought_signature` in `gemini_agent.db` to index logical states rather than just raw chat history.* 
+- **CoT Continuity:** On every query, the backend re-injects the previous signature into the Gemini 3 prompt context, preserving the "train of thought" for specific hardware layouts.* 
+- **Cold-Start Recovery:** Even after a full power-cycle, Silas resumes diagnosing complex issues (like I2C timing drifts) without losing context. 
+
+### **Persistence Sequence**
+
+```mermaid
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'background': '#ffffff',
+    'actorBkg': '#0a1a1a',
+    'actorBorder': '#00f2ff',
+    'actorTextColor': '#ffffff',
+    'lineColor': '#333',
+    'signalColor': '#333',
+    'signalTextColor': '#000',
+    'noteBkgColor': '#fff2cc',
+    'noteBorderColor': '#d6b656',
+    'noteTextColor': '#000',
+    'labelBoxBorderColor': '#555',
+    'labelBoxBkgColor': '#eee'
+  }
+}}%%
+sequenceDiagram
+    autonumber
+    
+    participant E as Physical Device (ESP32)
+    participant B as FastAPI Backend
+    participant DB as SQLite (gemini_agent.db)
+    participant G as Gemini 3 Flash
+
+    Note over E,G: Thought Signature Persistence Loop
+
+    E->>B: User Query + device_id
+    B->>DB: Fetch last_thought_signature
+    DB-->>B: Return "Reasoning State" hash
+    B->>G: Prompt + System Context + Signature
+    G-->>B: Response + New Internal Monologue
+    B->>DB: Update device_id with New Signature
+    B->>E: Audio Stream & HUD Telemetry
+```
+---
+
 ## 💻 Software Setup
 
 ### Backend (Python)
@@ -141,4 +190,4 @@ Having issues with the tunnel, audio, or simulation? Check the [Troubleshooting 
 * **Voice Synthesis**: **Google Cloud Text-to-Speech** (Studio-grade)
 
 ---
-*Built for the 2026 Gemini 3 Hackathon*
+*Built for the Gemini 3 Hackathon*
