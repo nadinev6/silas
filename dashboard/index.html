@@ -134,19 +134,19 @@
             }
         }
 
-        /* Metallic Text Gradient - SMALLER */
+        /* Metallic Text Gradient - SPACE GROTESK */
         h1 {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 2.5rem;
-            font-weight: 800;
-            line-height: 1;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.0rem;
+            font-weight: 750;
+            line-height: 1.1;
             margin: 0;
             text-transform: uppercase;
-            letter-spacing: 0.1em;
-            background: linear-gradient(180deg, #fff 30%, var(--spectral-2) 150%);
+            letter-spacing: 0.02em;
+            background: linear-gradient(180deg, #ffffff 0%, #a0a0a0 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 0 12px rgba(0, 255, 240, 0.2));
+            filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.1));
             transition: all 0.5s ease;
         }
 
@@ -172,7 +172,7 @@
         }
 
         .video-box::before {
-            content: "[ STREAM_PIPELINE_ACTIVE ]";
+            content: "[ SILAS_HARDWARE_CONFIGURATION ]";
             position: absolute;
             top: 12px;
             left: 16px;
@@ -234,6 +234,7 @@
 
         #log-entries {
             max-height: 60vh;
+            overflow-y: auto;
             display: flex;
             flex-direction: column;
             gap: 0.8rem;
@@ -377,12 +378,14 @@
         <h1>Project Silas</h1>
     </div>
 
-    <!-- VIDEO -->
-    <div class="video-section">
-        <div class="video-box">
-            <span style="font-family: var(--mono); color: rgba(255,255,255,0.2); font-size: 11px; letter-spacing: 2px;">
-                WAITING FOR MUX_STREAM_DATA...
-            </span>
+    <!-- TERMINAL DISPLAY -->
+    <div class="video-section" style="width: 100%; margin-bottom: 2rem;">
+        <div class="video-box" style="border: none; background: transparent;">
+            <div
+                style="width: 100%; max-width: 800px; margin: 0 auto; overflow: hidden; border: 1px solid var(--border); border-radius: 4px; box-shadow: 0 0 20px rgba(0,0,0,0.5);">
+                <img src="https://i.imghippo.com/files/OE7877HM.jpg" alt="Silas Software Configuration"
+                    style="width: 100%; height: auto; display: block; filter: brightness(1.0) contrast(1.05);">
+            </div>
         </div>
     </div>
 

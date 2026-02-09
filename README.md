@@ -9,6 +9,12 @@ A physical AI agent powered by **Gemini 3 Flash**, designed to bridge the gap be
 
 ---
 
+<p align="center">
+  <a href="https://player.mux.com/7TjOUyG3ZJH01pnBBjeioq2EOoC01O01x3tlG75yb5LqoY">
+    <img src="video.png" width="100%" alt="Watch Project Silas Demo">
+  </a>
+</p>
+
 ## 🎙️ The Persona: Silas
 Silas is a grumpy, veteran senior hardware engineer from the UK. He's cynical, blunt, and thinks your wiring is probably a fire hazard. However, he's deeply competent and will help you solve complex hardware bugs—while complaining about it the whole time.
 
@@ -19,9 +25,13 @@ ESP32-Gemini3-Agent/
 ├── firmware/          # PlatformIO ESP32 project
 ├── wokwi/             # Wokwi simulation files (sketch, diagram)
 ├── dashboard/         # Web-based "Glass Box" interface
+├── docs/              # Detailed documentation & guides
+│   ├── BEHAVIOR.md    # AI personality & rules
+│   ├── HARDWARE.md    # Wiring & component specs
+│   ├── TROUBLESHOOTING.md # Fixes for common setup issues
+│   └── images/        # Documentation assets
+├── firmware/          # PlatformIO ESP32 project
 ├── prompts/           # Silas's system instructions
-├── docs/              # Detailed hardware/behavior documentation
-├── tools/             # Utility scripts (e.g., local TTS client)
 └── README.md
 ```
 
@@ -96,6 +106,8 @@ graph TD
    npx localtunnel --port 8000 --subdomain silas-agent-v1
    ```
 
+   ![Software Configuration Guide](docs/images/Config.jpg)
+ 
 ### Firmware (C++)
 1. Open the **`firmware/`** folder in **PlatformIO**.
 2. Configure `WiFi` and `serverUrl` in `src/main.cpp`.
@@ -110,6 +122,9 @@ graph TD
 ---
 [!IMPORTANT]
 **Disclaimer**: This project utilizes Gemini 3 Flash’s native thinking capabilities. Silas's 'Internal Monologue' is not a pre-written script; it is a real-time summary of the model's logical steps.
+
+## 🛠️ Support & Troubleshooting
+Having issues with the tunnel, audio, or simulation? Check the [Troubleshooting Guide](docs/TROUBLESHOOTING.md).
 
 ## 👥 Credits & Acknowledgments
 * **Lead Developer**: Nadine van der Haar
